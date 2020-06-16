@@ -1,2 +1,2 @@
-# microservices-article
-Repository for Mediums article on AWS Microservices Setup.
+# AWS Microservices Setup
+Repository for Medium's article on AWS Microservices Setup.
