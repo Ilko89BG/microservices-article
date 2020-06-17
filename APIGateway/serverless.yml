@@ -36,7 +36,7 @@ resources:
     APIGW:
       Type: AWS::ApiGateway::RestApi
       Properties:
-        Name: limehome-api-gw-${self:provider.stage}
+        Name: main-api-gw-${self:provider.stage}
     UsersAPIResource:
       Type: AWS::ApiGateway::Resource
       Properties:
