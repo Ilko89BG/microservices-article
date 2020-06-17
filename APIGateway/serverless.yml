@@ -1,0 +1,109 @@
+service: main-api-gateway
+
+plugins:
+  - serverless-apigw-binary
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: ${opt:stage, 'develop'}
+  region: eu-central-1
+  apiGateway:
+    restApiId:
+      Ref: APIGW
+    restApiRootResourceId:
+      Fn::GetAtt:
+        - APIGW
+        - RootResourceId
+
+custom:
+  config: ${file(./config.yml):${self:provider.stage}}
+  apigwBinary:
+    types:
+      - "*/*"
+
+functions:
+  main:
+    handler: lambda.handler
+    events:
+      - http:
+          path: /
+          method: ANY
+      - http: ANY /{proxy+}
+
+resources:
+  Resources:
+    APIGW:
+      Type: AWS::ApiGateway::RestApi
+      Properties:
+        Name: limehome-api-gw-${self:provider.stage}
+    UsersAPIResource:
+      Type: AWS::ApiGateway::Resource
+      Properties:
+        ParentId:
+          Fn::GetAtt:
+            - APIGW
+            - RootResourceId
+        PathPart: users
+        RestApiId:
+          Ref: APIGW
+    UsersAPIProxyResource:
+      Type: AWS::ApiGateway::Resource
+      Properties:
+        ParentId:
+          Ref: UsersAPIResource
+        PathPart: "{proxy+}"
+        RestApiId:
+          Ref: APIGW
+    UsersAPIRootMethod:
+      Type: "AWS::ApiGateway::Method"
+      Properties:
+        HttpMethod: ANY
+        ResourceId:
+          Ref: UsersAPIResource
+        RestApiId:
+          Ref: APIGW
+        AuthorizationType: NONE
+        Integration:
+          IntegrationHttpMethod: ANY
+          Type: HTTP_PROXY
+          Uri: "${self:custom.config.USERS_SERVICE}"
+          PassthroughBehavior: WHEN_NO_MATCH
+          IntegrationResponses:
+            - StatusCode: 200
+    UsersAPIProxyMethod:
+      Type: AWS::ApiGateway::Method
+      Properties:
+        HttpMethod: ANY
+        ResourceId:
+          Ref: UsersAPIProxyResource
+        RestApiId:
+          Ref: APIGW
+        AuthorizationType: NONE
+        RequestParameters:
+          method.request.path.proxy: true
+        Integration:
+          CacheKeyParameters:
+            - "method.request.path.proxy"
+          RequestParameters:
+            integration.request.path.proxy: "method.request.path.proxy"
+          IntegrationHttpMethod: ANY
+          Type: HTTP_PROXY
+          Uri: "${self:custom.config.USERS_SERVICE}/{proxy}"
+          PassthroughBehavior: WHEN_NO_MATCH
+          IntegrationResponses:
+            - StatusCode: 200
+  Outputs:
+    apiGatewayRestApiId:
+      Value:
+        Ref: APIGW
+      Export:
+        Name: APIGW-restApiId-${self:provider.stage}
+
+    apiGatewayRestApiRootResourceId:
+      Value:
+        Fn::GetAtt:
+          - APIGW
+          - RootResourceId
+      Export:
+        Name: APIGW-rootResourceId-${self:provider.stage}

@@ -1,0 +1,11 @@
+default: &default
+  USERS_SERVICE: "http://MediumArticle-Users-env.eba-j7dxryyd.eu-central-1.elasticbeanstalk.com"
+develop:
+  <<: *default
+  USERS_SERVICE: "http://MediumArticle-Users-env.eba-j7dxryyd.eu-central-1.elasticbeanstalk.com"
+staging:
+  <<: *default
+  USERS_SERVICE: "{{URL to staging Users Service}}"
+production:
+  <<: *default
+  USERS_SERVICE: "{{URL to production Users Service}}"
