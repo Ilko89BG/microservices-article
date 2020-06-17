@@ -1,0 +1,13 @@
+service: orders-service
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  stage: ${opt:stage, 'develop'}
+  region: eu-central-1
+
+functions:
+  main:
+    handler: lambda.handler
+    events:
+      - http: ANY /{proxy+}
