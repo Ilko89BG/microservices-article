@@ -144,7 +144,7 @@
           "S3Bucket": {
             "Ref": "ServerlessDeploymentBucket"
           },
-          "S3Key": "serverless/orders-service/develop/1592370620213-2020-06-17T05:10:20.213Z/orders-service.zip"
+          "S3Key": "serverless/orders-service/develop/1592373132359-2020-06-17T05:52:12.359Z/orders-service.zip"
         },
         "FunctionName": "orders-service-develop-main",
         "Handler": "lambda.handler",
@@ -173,43 +173,40 @@
         "CodeSha256": "lIdbWC57gEwinVd3rKrMdPpEdieYX7u34U9GjE78gAA="
       }
     },
-    "ApiGatewayRestApi": {
-      "Type": "AWS::ApiGateway::RestApi",
-      "Properties": {
-        "Name": "develop-orders-service",
-        "EndpointConfiguration": {
-          "Types": [
-            "EDGE"
-          ]
-        },
-        "Policy": ""
-      }
-    },
-    "ApiGatewayResourceProxyVar": {
+    "ApiGatewayResourceOrders": {
       "Type": "AWS::ApiGateway::Resource",
       "Properties": {
         "ParentId": {
-          "Fn::GetAtt": [
-            "ApiGatewayRestApi",
-            "RootResourceId"
-          ]
+          "Fn::ImportValue": "APIGW-rootResourceId-develop"
         },
-        "PathPart": "{proxy+}",
+        "PathPart": "orders",
         "RestApiId": {
-          "Ref": "ApiGatewayRestApi"
+          "Fn::ImportValue": "APIGW-restApiId-develop"
         }
       }
     },
-    "ApiGatewayMethodProxyVarAny": {
+    "ApiGatewayResourceOrdersProxyVar": {
+      "Type": "AWS::ApiGateway::Resource",
+      "Properties": {
+        "ParentId": {
+          "Ref": "ApiGatewayResourceOrders"
+        },
+        "PathPart": "{proxy+}",
+        "RestApiId": {
+          "Fn::ImportValue": "APIGW-restApiId-develop"
+        }
+      }
+    },
+    "ApiGatewayMethodOrdersProxyVarAny": {
       "Type": "AWS::ApiGateway::Method",
       "Properties": {
         "HttpMethod": "ANY",
         "RequestParameters": {},
         "ResourceId": {
-          "Ref": "ApiGatewayResourceProxyVar"
+          "Ref": "ApiGatewayResourceOrdersProxyVar"
         },
         "RestApiId": {
-          "Ref": "ApiGatewayRestApi"
+          "Fn::ImportValue": "APIGW-restApiId-develop"
         },
         "ApiKeyRequired": false,
         "AuthorizationType": "NONE",
@@ -243,16 +240,16 @@
         "MethodResponses": []
       }
     },
-    "ApiGatewayDeployment1592370619136": {
+    "ApiGatewayDeployment1592373131926": {
       "Type": "AWS::ApiGateway::Deployment",
       "Properties": {
         "RestApiId": {
-          "Ref": "ApiGatewayRestApi"
+          "Fn::ImportValue": "APIGW-restApiId-develop"
         },
         "StageName": "develop"
       },
       "DependsOn": [
-        "ApiGatewayMethodProxyVarAny"
+        "ApiGatewayMethodOrdersProxyVarAny"
       ]
     },
     "MainLambdaPermissionApiGateway": {
@@ -284,7 +281,7 @@
               },
               ":",
               {
-                "Ref": "ApiGatewayRestApi"
+                "Fn::ImportValue": "APIGW-restApiId-develop"
               },
               "/*/*"
             ]
@@ -313,7 +310,7 @@
           [
             "https://",
             {
-              "Ref": "ApiGatewayRestApi"
+              "Fn::ImportValue": "APIGW-restApiId-develop"
             },
             ".execute-api.",
             {
